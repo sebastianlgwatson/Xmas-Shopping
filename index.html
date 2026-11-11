@@ -1,0 +1,453 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Christmas Food Shop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column. Masthead, a sticky strip with running totals and a
+   progress bar, then one card per shopping section. Each row is tick | item | £ | notes,
+   and collapses to a stacked row at phone width. Ticked rows turn green. */
+:root {
+  --bg: #eef2ee;
+  --surface: #fbfcfa;
+  --field: #ffffff;
+  --ink: #152620;
+  --ink2: #52655c;
+  --line: #d3dbd4;
+  --accent: #a3213f;
+  --accent-ink: #ffffff;
+  --done-bg: #d3ecd8;
+  --done-line: #a4cfad;
+  --done-ink: #1c4a2b;
+  --done-field: #e7f5ea;
+  --tick: #1f7a4d;
+  --focus: #1f7a4d;
+  --danger: #a3213f;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1914;
+    --surface: #15241d;
+    --field: #0e1914;
+    --ink: #e8efe9;
+    --ink2: #9db0a5;
+    --line: #2a3e33;
+    --accent: #e8738d;
+    --accent-ink: #1a0b10;
+    --done-bg: #1f4a31;
+    --done-line: #2f6b47;
+    --done-ink: #c9f0d5;
+    --done-field: #173a27;
+    --tick: #4fcf8c;
+    --focus: #4fcf8c;
+    --danger: #ee8aa0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1914;
+  --surface: #15241d;
+  --field: #0e1914;
+  --ink: #e8efe9;
+  --ink2: #9db0a5;
+  --line: #2a3e33;
+  --accent: #e8738d;
+  --accent-ink: #1a0b10;
+  --done-bg: #1f4a31;
+  --done-line: #2f6b47;
+  --done-ink: #c9f0d5;
+  --done-field: #173a27;
+  --tick: #4fcf8c;
+  --focus: #4fcf8c;
+  --danger: #ee8aa0;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 15px/1.45 var(--font-body);
+  padding-block: 0 4rem;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--bg);
+  z-index: 10;
+}
+.wrap {
+  max-width: 880px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Masthead */
+.mast { padding-block: 1.75rem 1.25rem; display: grid; gap: .6rem; }
+.eyebrow {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .6rem;
+  font-size: .75rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2);
+}
+.chip {
+  background: var(--accent); color: var(--accent-ink);
+  padding: .2rem .6rem; border-radius: 99px; letter-spacing: .04em; text-transform: none; font-size: .8rem;
+}
+h1 {
+  font: 800 clamp(2.2rem, 7vw, 3.6rem)/.95 var(--font-display);
+  letter-spacing: -.025em; margin: 0; text-wrap: balance;
+}
+
+/* Sticky strip */
+.strip {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+  padding-block: .7rem .6rem; margin-bottom: 1.1rem;
+}
+.figures { display: flex; flex-wrap: wrap; gap: .4rem 1.75rem; align-items: baseline; }
+.fig { display: grid; gap: 0; min-width: 0; }
+.fig .lbl { font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
+.fig .val { font: 800 1.45rem/1.15 var(--font-display); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: .6rem; }
+.progress > div { height: 100%; width: 0; background: var(--tick); border-radius: 99px; transition: width .3s ease; }
+.seg { display: flex; gap: .25rem; margin-left: auto; align-self: center; }
+.seg button {
+  font: 600 .8rem var(--font-body); color: var(--ink2); background: transparent;
+  border: 1px solid var(--line); border-radius: 99px; padding: .3rem .8rem; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.status { min-height: 1.2em; font-size: .85rem; color: var(--ink2); margin: 0 0 .6rem; }
+.status.err { color: var(--danger); }
+
+/* Column labels (wide screens) */
+.cols, .row {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1.25fr) 7.6rem minmax(0, 1.4fr) 4.2rem;
+  gap: .5rem .85rem; align-items: center;
+}
+.cols {
+  padding: 0 1rem .4rem; font-size: .68rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink2);
+}
+.cols span:nth-child(3) { text-align: left; }
+
+/* Sections */
+.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 1rem; overflow: hidden; }
+.sec-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .2rem 1rem; padding: .9rem 1rem .7rem; }
+.sec-h h2 { font: 800 1.25rem/1.15 var(--font-display); letter-spacing: -.01em; margin: 0; }
+.sec-meta { font-size: .8rem; color: var(--ink2); font-variant-numeric: tabular-nums; }
+
+.row { padding: .55rem 1rem; border-top: 1px solid var(--line); transition: background-color .2s ease; }
+.row.done { background: var(--done-bg); border-top-color: var(--done-line); }
+.row.done + .row { border-top-color: var(--done-line); }
+.name { font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.row.done .name { color: var(--done-ink); text-decoration: line-through; text-decoration-thickness: 1.5px; text-decoration-color: color-mix(in srgb, var(--done-ink) 55%, transparent); }
+
+.chk { display: inline-flex; width: 2.6rem; height: 2.6rem; align-items: center; justify-content: center; margin: -.4rem 0 -.4rem -.6rem; cursor: pointer; }
+.tick {
+  appearance: none; -webkit-appearance: none; margin: 0;
+  width: 1.65rem; height: 1.65rem; border-radius: 7px; cursor: pointer;
+  border: 2px solid var(--ink2); background: var(--field); position: relative;
+}
+.tick:checked { background: var(--tick); border-color: var(--tick); }
+.tick:checked::after {
+  content: ""; position: absolute; left: 50%; top: 46%; width: .42rem; height: .8rem;
+  border: solid var(--bg); border-width: 0 .17rem .17rem 0; transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.price { position: relative; display: block; }
+.pound { position: absolute; left: .65rem; top: 50%; transform: translateY(-50%); color: var(--ink2); pointer-events: none; font-variant-numeric: tabular-nums; }
+.p, .n, .add input {
+  width: 100%; font: 400 .95rem var(--font-body); color: var(--ink); background: var(--field);
+  border: 1px solid var(--line); border-radius: 8px; padding: .45rem .65rem; min-width: 0;
+}
+.p { padding-left: 1.45rem; font-variant-numeric: tabular-nums; }
+.row.done .p, .row.done .n { background: var(--done-field); border-color: var(--done-line); }
+.p::placeholder, .n::placeholder, .add input::placeholder { color: var(--ink2); opacity: .75; }
+input:focus-visible, button:focus-visible, .tick:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.del {
+  justify-self: end; font: 500 .8rem var(--font-body); color: var(--ink2); background: transparent;
+  border: 1px solid transparent; border-radius: 8px; padding: .35rem .5rem; cursor: pointer; white-space: nowrap;
+}
+.del:hover { border-color: var(--line); }
+.del[data-armed="1"] { color: var(--danger); border-color: var(--danger); }
+
+.add { padding: .6rem 1rem .8rem; border-top: 1px solid var(--line); }
+.add input { background: transparent; border-style: dashed; }
+
+.empty { border: 1px dashed var(--line); border-radius: 14px; padding: 2rem 1.25rem; text-align: center; color: var(--ink2); }
+.empty strong { display: block; color: var(--ink); font: 800 1.2rem var(--font-display); margin-bottom: .25rem; }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body.ro .add { display: none; }
+
+@media (max-width: 640px) {
+  .cols { display: none; }
+  .row {
+    grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+    grid-template-areas: "chk name del" ". price price" ". notes notes";
+  }
+  .chk { grid-area: chk; }
+  .name { grid-area: name; }
+  .price { grid-area: price; max-width: 9rem; }
+  .n { grid-area: notes; }
+  .del { grid-area: del; }
+  .seg { margin-left: 0; width: 100%; }
+  .seg button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row, .progress > div { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <div class="mast">
+    <div class="eyebrow"><span>Christmas food shop</span><span class="chip" id="days"></span></div>
+    <h1>The big Christmas list</h1>
+  </div>
+
+  <div class="strip">
+    <div class="figures">
+      <div class="fig"><span class="lbl">Spent</span><span class="val" id="spent">£0.00</span></div>
+      <div class="fig"><span class="lbl">Priced in total</span><span class="val" id="listed">£0.00</span></div>
+      <div class="fig"><span class="lbl">Bought</span><span class="val" id="count">0 of 0</span></div>
+      <div class="seg" role="group" aria-label="Show items">
+        <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+        <button type="button" id="f-todo" data-f="todo" aria-pressed="false">To buy</button>
+        <button type="button" id="f-done" data-f="done" aria-pressed="false">Bought</button>
+      </div>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Items bought" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="bar"></div></div>
+  </div>
+
+  <p class="status" id="status" role="status" aria-live="polite">Loading the list…</p>
+
+  <div class="cols" id="cols" hidden aria-hidden="true"><span>Bought</span><span>Item</span><span>Price</span><span>Notes</span><span></span></div>
+  <div id="list">
+    <div class="empty" id="empty"><strong>Your list will appear here</strong>Sections, items, prices and notes load as soon as the list is reached.</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var listEl = document.getElementById('list');
+  var emptyEl = document.getElementById('empty');
+  var statusEl = document.getElementById('status');
+  var colsEl = document.getElementById('cols');
+  var items = new Map();
+  var secEls = new Map();
+  var rowEls = new Map();
+  var queues = new Map();
+  var db = null, ro = false, filter = 'all';
+  var armTimer = null;
+
+  function gbp(n) { return '£' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function setStatus(msg, isErr) { statusEl.textContent = msg || ''; statusEl.className = 'status' + (isErr ? ' err' : ''); }
+
+  // Days to Christmas
+  (function () {
+    var now = new Date(), y = now.getFullYear();
+    var x = new Date(y, 11, 25), t = new Date(y, now.getMonth(), now.getDate());
+    var d = Math.round((x - t) / 86400000);
+    var el = document.getElementById('days');
+    el.textContent = d > 1 ? d + ' days to go' : d === 1 ? 'Christmas Eve' : d === 0 ? 'Merry Christmas' : 'Until next year';
+  })();
+
+  function parsePrice(s) {
+    s = String(s).replace(/[£,\s]/g, '');
+    if (s === '') return null;
+    var n = parseFloat(s);
+    return isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : undefined;
+  }
+
+  function onWriteError(e) {
+    if (e && e.code === 'invalid_argument') { setReadOnly(); setStatus('This list is view-only for you, so changes are not saved.', true); }
+    else if (e && e.code === 'unavailable') setStatus('Could not save just now. Try that change again.', true);
+    else setStatus('Could not save that change.', true);
+  }
+  function write(id, fn) {
+    var p = (queues.get(id) || Promise.resolve()).then(fn).catch(onWriteError);
+    queues.set(id, p);
+    return p;
+  }
+  function update(id, patch) { if (!db) return; write(id, function () { return db.doc('items/' + id).update(patch); }); }
+
+  function setReadOnly() {
+    ro = true; document.body.classList.add('ro');
+    rowEls.forEach(function (r) { r.querySelectorAll('input,button.del').forEach(function (c) { c.disabled = true; }); });
+  }
+
+  function makeRow(id) {
+    var row = document.createElement('div');
+    row.className = 'row'; row.dataset.id = id;
+    row.innerHTML =
+      '<label class="chk"><input type="checkbox" class="tick" id="tick-' + id + '"><span class="sr">Bought</span></label>' +
+      '<div class="name"></div>' +
+      '<label class="price"><span class="pound" aria-hidden="true">£</span><input class="p" id="price-' + id + '" inputmode="decimal" autocomplete="off" placeholder="0.00"></label>' +
+      '<input class="n" id="notes-' + id + '" type="text" autocomplete="off" placeholder="Notes" aria-label="Notes">' +
+      '<button class="del" type="button" id="del-' + id + '">Remove</button>';
+    return row;
+  }
+
+  function fillRow(row, d) {
+    var tick = row.querySelector('.tick'), p = row.querySelector('.p'), n = row.querySelector('.n');
+    row.classList.toggle('done', !!d.bought);
+    tick.checked = !!d.bought;
+    row.querySelector('.name').textContent = d.name || '';
+    tick.setAttribute('aria-label', 'Bought: ' + (d.name || ''));
+    p.setAttribute('aria-label', 'Price in pounds for ' + (d.name || ''));
+    n.setAttribute('aria-label', 'Notes for ' + (d.name || ''));
+    row.querySelector('.del').setAttribute('aria-label', 'Remove ' + (d.name || ''));
+    if (document.activeElement !== p) p.value = typeof d.price === 'number' ? d.price.toFixed(2) : '';
+    if (document.activeElement !== n) n.value = d.notes || '';
+    var disabled = ro;
+    tick.disabled = p.disabled = n.disabled = row.querySelector('.del').disabled = disabled;
+  }
+
+  function makeSection(name) {
+    var sec = document.createElement('section');
+    sec.className = 'sec';
+    var slug = 'sec-' + secEls.size + '-' + Math.random().toString(36).slice(2, 6);
+    sec.innerHTML =
+      '<div class="sec-h"><h2></h2><span class="sec-meta"></span></div><div class="rows"></div>' +
+      '<div class="add"><input type="text" autocomplete="off" id="add-' + slug + '"></div>';
+    sec.querySelector('h2').textContent = name;
+    var inp = sec.querySelector('.add input');
+    inp.placeholder = 'Add to ' + name;
+    inp.setAttribute('aria-label', 'Add an item to ' + name);
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); var v = inp.value; inp.value = ''; addItem(name, v); }
+    });
+    return sec;
+  }
+
+  function addItem(section, name) {
+    name = (name || '').trim();
+    if (!name || !db || ro) return;
+    var inSec = [];
+    items.forEach(function (d) { if (d.section === section) inSec.push(d); });
+    var order = inSec.reduce(function (m, d) { return Math.max(m, d.order || 0); }, 0) + 1;
+    var so = inSec.length ? inSec[0].sectionOrder : 999;
+    db.collection('items').add({ section: section, sectionOrder: so, order: order, name: name, bought: false, price: null, notes: '' }).catch(onWriteError);
+  }
+
+  function sync() {
+    var by = new Map();
+    items.forEach(function (d, id) {
+      var s = d.section || 'Other';
+      if (!by.has(s)) by.set(s, { name: s, order: typeof d.sectionOrder === 'number' ? d.sectionOrder : 999, rows: [] });
+      by.get(s).rows.push({ id: id, d: d });
+    });
+    var secs = Array.from(by.values()).sort(function (a, b) { return a.order - b.order || a.name.localeCompare(b.name); });
+
+    var spent = 0, listed = 0, done = 0, total = 0;
+    var keep = new Set();
+
+    secs.forEach(function (s, si) {
+      var el = secEls.get(s.name);
+      if (!el) { el = makeSection(s.name); secEls.set(s.name, el); }
+      keep.add(s.name);
+      if (listEl.children[si + 1] !== el) listEl.insertBefore(el, listEl.children[si + 1] || null);
+      var rowsEl = el.querySelector('.rows');
+      s.rows.sort(function (a, b) { return (a.d.order || 0) - (b.d.order || 0) || String(a.d.name).localeCompare(String(b.d.name)); });
+      var sDone = 0, sSum = 0, visible = 0;
+      s.rows.forEach(function (r, ri) {
+        var row = rowEls.get(r.id);
+        if (!row) { row = makeRow(r.id); rowEls.set(r.id, row); }
+        fillRow(row, r.d);
+        if (rowsEl.children[ri] !== row) rowsEl.insertBefore(row, rowsEl.children[ri] || null);
+        var hide = (filter === 'todo' && r.d.bought) || (filter === 'done' && !r.d.bought);
+        row.hidden = hide; if (!hide) visible++;
+        total++;
+        if (r.d.bought) { done++; sDone++; }
+        if (typeof r.d.price === 'number') { listed += r.d.price; sSum += r.d.price; if (r.d.bought) spent += r.d.price; }
+      });
+      el.querySelector('.sec-meta').textContent = sDone + ' of ' + s.rows.length + ' bought' + (sSum > 0 ? ' · ' + gbp(sSum) : '');
+      el.hidden = filter !== 'all' && visible === 0;
+    });
+
+    // remove rows and sections that no longer exist
+    rowEls.forEach(function (row, id) { if (!items.has(id)) { row.remove(); rowEls.delete(id); } });
+    secEls.forEach(function (el, name) { if (!keep.has(name)) { el.remove(); secEls.delete(name); } });
+
+    var has = total > 0;
+    emptyEl.hidden = has;
+    colsEl.hidden = !has;
+    document.getElementById('spent').textContent = gbp(spent);
+    document.getElementById('listed').textContent = gbp(listed);
+    document.getElementById('count').textContent = done + ' of ' + total;
+    var pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('bar').style.width = pct + '%';
+    document.querySelector('.progress').setAttribute('aria-valuenow', String(pct));
+  }
+
+  // Events (delegated)
+  listEl.addEventListener('change', function (e) {
+    var row = e.target.closest('.row'); if (!row) return;
+    var id = row.dataset.id, d = items.get(id); if (!d) return;
+    if (e.target.classList.contains('tick')) {
+      update(id, { bought: e.target.checked });
+    } else if (e.target.classList.contains('p')) {
+      var v = parsePrice(e.target.value);
+      if (v === undefined) { e.target.value = typeof d.price === 'number' ? d.price.toFixed(2) : ''; setStatus('Enter the price as a number, for example 4.50.', true); return; }
+      setStatus('');
+      e.target.value = v === null ? '' : v.toFixed(2);
+      if (v !== (typeof d.price === 'number' ? d.price : null)) update(id, { price: v });
+    } else if (e.target.classList.contains('n')) {
+      if (e.target.value !== (d.notes || '')) update(id, { notes: e.target.value });
+    }
+  });
+  listEl.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && (e.target.classList.contains('p') || e.target.classList.contains('n'))) e.target.blur();
+  });
+  listEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.del'); if (!btn) return;
+    var id = btn.closest('.row').dataset.id;
+    if (btn.dataset.armed === '1') {
+      clearTimeout(armTimer);
+      if (db) write(id, function () { return db.doc('items/' + id).delete(); });
+    } else {
+      btn.dataset.armed = '1'; btn.textContent = 'Sure?';
+      clearTimeout(armTimer);
+      armTimer = setTimeout(function () { btn.dataset.armed = '0'; btn.textContent = 'Remove'; }, 3000);
+    }
+  });
+  document.querySelector('.seg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    filter = b.dataset.f;
+    document.querySelectorAll('.seg button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    sync();
+  });
+
+  // Connect
+  (async function () {
+    if (!window.claude || !window.claude.use) { setStatus('The shared list is not available in this view.', true); return; }
+    try {
+      var user = await window.claude.use('user');
+      if (user && typeof user.can === 'function') { var w = await user.can('data.write'); if (w === false) ro = true; }
+    } catch (e) {}
+    db = await window.claude.use('db');
+    if (!db) { setStatus('The shared list is not available in this view. Sign in to Claude and reopen the page.', true); return; }
+    if (ro) { document.body.classList.add('ro'); }
+    var timer = setTimeout(function () { setStatus('Still trying to reach the list. Check your connection.', true); }, 10000);
+    db.collection('items').onSnapshot(function (snap) {
+      if (!snap.metadata.fromCache) clearTimeout(timer);
+      items = new Map();
+      snap.docs.forEach(function (doc) { items.set(doc.id, doc.data()); });
+      if (!snap.metadata.fromCache || items.size) setStatus(ro ? 'View only. Ask for edit access to tick items.' : '');
+      sync();
+    }, function (err) {
+      clearTimeout(timer);
+      setStatus(err && err.code === 'revoked' ? 'Access to this list was removed.' : 'Could not load the list.', true);
+    });
+  })();
+})();
+</script>
+
+</body></html>
